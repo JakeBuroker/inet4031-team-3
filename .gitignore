@@ -1,0 +1,33 @@
+# Week-specific environment files
+week-2/.env
+week-2/.env.local
+infrastructure/terraform.tfstate*
+
+# Ansible artifacts
+*.retry
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Temporary files
+*.tmp
+*.log
+
+# Local development
+.env.local
+.env*.local
