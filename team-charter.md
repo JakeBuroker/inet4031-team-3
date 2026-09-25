@@ -42,4 +42,4 @@ We have decided to commuicate via google chat primarily, and text message if it 
 
 Merging notifications will be done over text.
 
-48 hours max response 
+48 hours max response. 
