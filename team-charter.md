@@ -14,10 +14,10 @@ Sprint 1: Scrum Master = Ismail, System Admin = Hugo, QA = Tomas, Developers = R
 
 Add one sentence describing each role after you assign them in Part 1:
 
-- **Scrum Master:** [Your one-sentence description]
-- **System Admin:** [Your one-sentence description]
-- **QA:** [Your one-sentence description]
-- **Developer:** [Your one-sentence description]
+- **Scrum Master:** Makes sure everything is documentated and sprint board is maintained.
+- **System Admin:** Leads work on enviornment and infrastructure configurations.
+- **QA:** Will ensure that all validation checks happen, and will be the final aproval for merges to main.
+- **Developer:** Remains available for all remaining lab work that will change depending on week.
 
 ## 7-Sprint Rotation Schedule
 
@@ -38,8 +38,8 @@ Sprint 7: Scrum Master = Ismail, System Admin = Roble, QA = Tomas, Developers = 
 
 Document three decisions your team made about operating the shared container and managing infrastructure changes:
 
-1. **[Topic]:** [Your team's decision]
+We have decided to commuicate via google chat primarily, and text message if it is urgent.
 
-2. **[Topic]:** [Your team's decision]
+Merging notifications will be done over text.
 
-3. **[Topic]:** [Your team's decision]
+RESPONSE TIMES:
