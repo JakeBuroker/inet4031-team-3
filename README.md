@@ -19,7 +19,7 @@ Jake
 Ismail
 Hugo
 Tomas
-Mohamed
+Mohamed R
 Yasir
 
 See `team-charter.md` for role assignments and the 7-sprint rotation schedule.
