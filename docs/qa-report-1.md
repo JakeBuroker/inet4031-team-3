@@ -1,4 +1,4 @@
-# QA Report: Sprint 1 Week 1
+# QA Report: Sprint 1 Week 2
 
 QA is responsible for running all validation checks and signing off before deliverables are submitted. This report documents the validation process.
 
@@ -9,108 +9,118 @@ QA is responsible for running all validation checks and signing off before deliv
 
 ## Validation Checks
 
-### Check 1: All Team Members Can Access the Container
+### Check 1: All Three Services Are Running and Two Of Them Show Healthy
 
-**Status:** [ ] PASS [ ] FAIL
+**Test:** Run `docker compose ps` from the `week-2/` directory
 
-**Evidence:**
+**Expected:** Three rows, each with "running" in the Status column
+
+**Actual Result:**
 ```
-[Paste output of each team member running `whoami` and `hostname`]
+TODO: Paste the actual output of docker compose ps
 ```
 
-**Notes:**
-[Any issues encountered or observations]
+**Status:** TODO: [ ] Pass [ ] Fail
 
-**Sign-off:** [ ] QA approves this check
+**Notes:** If any service shows "starting" or "exited", what did the logs reveal?
 
 ---
 
-### Check 2: Repository Structure Is Correct
+### Check 2: Nginx Is Reachable on the Mapped Port
 
-**Status:** [ ] PASS [ ] FAIL
+**Test:** Run `curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/health`
 
-**Evidence:**
-```
-[Paste output of `ls -1` from repo root]
-```
+**Expected:** HTTP 200
 
-**Expected directories present:**
-- [ ] README.md
-- [ ] ansible
-- [ ] scripts
-- [ ] team-charter.md
-- [ ] week-1 to week-9
+**Actual Result:** TODO: Record the status code
 
-**Notes:**
-[Any missing directories or issues]
+**Status:** TODO: [ ] Pass [ ] Fail
 
-**Sign-off:** [ ] QA approves this check
+**Notes:** If the request failed, what error message did you see?
 
 ---
 
-### Check 3: Ansible Playbook Is Idempotent
+### Check 3: Data Persists Across Container Restart
 
-**Status:** [ ] PASS [ ] FAIL
+**Test:** Create a test incident, restart the PostgreSQL container, retrieve all incidents
 
-**First Run Output:**
+**Steps Performed:**
 ```
-[Paste PLAY RECAP from first `ansible-playbook` run]
-```
-
-**Second Run Output:**
-```
-[Paste PLAY RECAP from second `ansible-playbook` run]
+TODO: Paste the commands you ran
 ```
 
-**Verification:**
-- [ ] First run shows `failed=0` and `unreachable=0`
-- [ ] Second run shows `changed=0`
-- [ ] All tasks on second run show `ok` status
+**Actual Result:**
+```
+TODO: Paste the output showing the incident was retrieved after restart
+```
 
-**Notes:**
-[Any tasks that showed `changed` on the second run]
+**Status:** TODO: [ ] Pass [ ] Fail
 
-**Sign-off:** [ ] QA approves this check
+**Notes:** Was data present after the restart? Was anything lost?
 
 ---
 
-### Check 4: Google Doc Is Linked and Shared
+### Check 4: Check Script Passes
 
-**Status:** [ ] PASS [ ] FAIL
+**Test:** Run `chmod +x scripts/check-week2.sh` then `./scripts/check-week2.sh`
 
-**Evidence:**
-- [ ] Google Doc URL present in README.md
-- [ ] URL is accessible at: [Paste URL here]
-- [ ] Doc is readable by University of Minnesota users
-- [ ] Sprint 1 Reflections section contains Part 2 answers
-- [ ] Sprint 1 Reflections section contains Part 3 answers
-- [ ] Week 1 Storage Baseline section contains required outputs
+**Expected:** All checks pass with exit code 0
 
-**Notes:**
-[Any access or content issues]
+**Actual Result:**
+```
+TODO: Paste the full output of the check script
+```
 
-**Sign-off:** [ ] QA approves this check
+**Status:** TODO: [ ] Pass [ ] Fail
+
+**Notes:** If any checks failed, what did the script report?
 
 ---
 
-### Check 5: Check Script Passes
+## Acceptance Criteria Verification
 
-**Status:** [ ] PASS [ ] FAIL
+Review the criteria below for each part of this week's deliverables. For each criterion, record whether it was met:
 
-**Command Run:**
-```bash
-./scripts/check-week1.sh
-```
+### Part 1: Service Definition
 
-**Output:**
-```
-[Paste full output]
-```
+TODO: [ ] All three services start in correct order
+TODO: [ ] Health checks work as specified
 
-**Notes:**
-[Any failures or warnings from the script]
+### Part 2: Networking and Persistence
 
-**Sign-off:** [ ] QA approves this check
+TODO: [ ] Data persists across `docker compose restart`
+TODO: [ ] Data is lost after `docker compose down -v`
+
+### Part 3: Environment
+
+TODO: [ ] `.env` is in `.gitignore`
+TODO: [ ] `.env.example` documents all variablest
+
+---
+
+## Deliverables Verification
+
+### Required Files
+
+TODO: [ ] `week-2/docker-compose.yml` is committed
+TODO: [ ] `week-2/.env.example` is committed
+TODO: [ ] `week-2/nginx.conf` is committed
+TODO: [ ] `week-2/README.md` is committed
+TODO: [ ] `ansible/site.yml` includes app-stack role play
+TODO: [ ] `ansible/roles/app-stack/tasks/main.yml` is committed
+TODO: [ ] `.gitignore` excludes `week-2/.env`
+
+### GitHub Repository
+
+TODO: [ ] All changes are pushed to the main branch
+TODO: [ ] GitHub Project board shows all tasks completed
+TODO: [ ] PR descriptions explain implementation decisions
+
+### Google Doc
+
+TODO: [ ] Sprint 1 Week 2 reflection answers are recorded
+TODO: [ ] Week 2 storage check values are recorded
+TODO: [ ] Required screenshots are attached
 
 ---
 

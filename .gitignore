@@ -31,3 +31,4 @@ ENV/
 # Local development
 .env.local
 .env*.local
+week-2/.env
