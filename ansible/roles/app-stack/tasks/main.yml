@@ -1,0 +1,12 @@
+---
+- name: Ensure .env file exists for app stack
+  copy:
+    src: "{{ playbook_dir }}/../week-2/.env.example"
+    dest: "{{ playbook_dir }}/../week-2/.env"
+    force: no
+
+- name: Bring up the Docker Compose application stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ playbook_dir }}/../week-2"
+    state: present
+  become: yes

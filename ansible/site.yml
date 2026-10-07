@@ -82,3 +82,12 @@
       become: yes
       become_user: "{{ lookup('env', 'SUDO_USER') or lookup('env', 'USER') }}"
       changed_when: docker_current_context.stdout | default('') != 'default'
+
+
+- name: Deploy application stack
+  hosts: localhost
+  connection: local
+  become: yes
+
+  roles:
+    - app-stack

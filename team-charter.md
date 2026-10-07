@@ -34,7 +34,7 @@ Sprint 7: Scrum Master = Ismail, System Admin = Roble, QA = Tomas, Developers = 
 
 ```
 
-## Three Team Operating Agreements
+## Communication Norms
 
 Document three decisions your team made about operating the shared container and managing infrastructure changes:
 
