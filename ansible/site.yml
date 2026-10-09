@@ -83,11 +83,34 @@
       become_user: "{{ lookup('env', 'SUDO_USER') or lookup('env', 'USER') }}"
       changed_when: docker_current_context.stdout | default('') != 'default'
 
+    - name: Set up k3d cluster
+      hosts: localhost
+      connection: local
+      become: yes
+      environment:
+       PATH: "/usr/local/bin:{{ ansible_env.PATH }}"
+      roles:
+       - k3d-setup
 
-- name: Deploy application stack
+
+# - name: Deploy application stack
+#   hosts: localhost
+#   connection: local
+#   become: yes
+#
+#   roles:
+#     - app-stack
+
+# Lab 3, page 13: write this play, but do not run it on the university VM.
+- name: Set up k3d cluster
   hosts: localhost
   connection: local
   become: yes
-
+  environment:
+    PATH: "/usr/local/bin:{{ ansible_env.PATH }}"
+  vars:
+    k3d_host_port: 8093
+    # Set to the exact Step 7 subnet before this role is considered complete.
+    k3d_subnet: ""
   roles:
-    - app-stack
+    - k3d-setup

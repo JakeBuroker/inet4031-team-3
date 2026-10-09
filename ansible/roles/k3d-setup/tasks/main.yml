@@ -1,0 +1,44 @@
+---
+- name: Check if k3d is installed
+  ansible.builtin.command: which k3d
+  register: k3d_check
+  failed_when: false
+  changed_when: false
+
+- name: Install k3d if absent
+  ansible.builtin.shell: |
+    set -o pipefail
+    curl -fsSL https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+  args:
+    executable: /bin/bash
+  when: k3d_check.rc != 0
+
+- name: Check existing k3d clusters
+  ansible.builtin.command: k3d cluster list --output json
+  register: cluster_list
+  changed_when: false
+
+- name: Create the missing lab cluster
+  when: "'myapp' not in (cluster_list.stdout | from_json | map(attribute='name') | list)"
+  block:
+    - name: Require the actual subnet from Step 7
+      ansible.builtin.assert:
+        that:
+          - k3d_subnet | default('') | length > 0
+        fail_msg: Set k3d_subnet to your actual Step 7 subnet; do not guess it.
+
+    - name: Create myapp with two agents and Team 3 port
+      ansible.builtin.command:
+        argv:
+          - k3d
+          - cluster
+          - create
+          - myapp
+          - --agents
+          - "2"
+          - --port
+          - "8083:80@loadbalancer"
+          - --k3s-arg
+          - "--disable=traefik@server:0"
+          - --subnet
+          - "100.97.3.0/24"

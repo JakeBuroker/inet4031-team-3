@@ -1,0 +1,19 @@
+apiVersion: v1
+data:
+  nginx.conf: |
+    server {
+        listen 80;
+
+        location / {
+            proxy_pass http://flask:5000;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+        }
+    }
+kind: ConfigMap
+metadata:
+  annotations:
+    use-subpath: "true"
+  labels:
+    app: nginx
+  name: nginx-cm0
