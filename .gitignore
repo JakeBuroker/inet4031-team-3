@@ -2,6 +2,7 @@
 week-2/.env
 week-2/.env.local
 infrastructure/terraform.tfstate*
+infrastructure/.terraform/providers*
 
 # Ansible artifacts
 *.retry
