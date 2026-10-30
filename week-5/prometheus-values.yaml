@@ -41,3 +41,16 @@ scrapeConfigs:
     enabled: false
 
 # TODO: You will add an alerting rule here in Part 3, Step 14
+serverFiles:
+  alerting_rules.yml:
+    groups:
+      - name: flask-error-rate
+        interval: 1m
+        rules:
+          - alert: HTTP5xxErrorRateHigh
+            expr: sum(rate(flask_http_request_duration_seconds_count{status=~"5.."}[5m])) / sum(rate(flask_http_request_duration_seconds_count[5m])) > 0.01
+            for: 1m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Flask is returning more than 1% 5xx responses"
