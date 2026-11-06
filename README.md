@@ -51,6 +51,11 @@ https://docs.google.com/document/d/1qiZtpvRZ7LgsnV_6FQqtjsHBYpFukHWmOEciEqmgxG8/
 All sprint reflections, screenshots, and storage-check output are recorded in this
 document as each week's wiki directions require.
 
+**GitHub Projects:**
+https://github.com/users/JakeBuroker/projects/3
+
+Link to GitHub Projects
+
 ## Getting Started
 
 1. Read the Week 1 wiki directions completely before beginning.
