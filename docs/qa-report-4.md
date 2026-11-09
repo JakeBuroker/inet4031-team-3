@@ -1,4 +1,4 @@
-# QA Report: Sprint 4 Week 7
+# QA Report: Sprint 4 Week 8
 
 QA is responsible for running all validation checks and signing off before deliverables are submitted. This report documents the validation process.
 
@@ -9,28 +9,11 @@ QA is responsible for running all validation checks and signing off before deliv
 
 ## Validation Checks
 
-### Check 1: Flask Uses Custom ServiceAccount
+### Check 1: MinIO Is Running
 
-**Test:** Run `kubectl get pod -l app=flask -o jsonpath='{.items[0].spec.serviceAccountName}'`
+**Test:** Run `kubectl get pods -n backup -l app=minio`
 
-**Expected:** `flask-app`
-
-**Actual Result:**
-```
-TODO: Paste the actual output
-```
-
-**Status:** TODO: [ ] Pass [ ] Fail
-
-**Notes:** If this doesn't match, was the ServiceAccount change applied through `tofu apply` rather than a direct `kubectl edit`?
-
----
-
-### Check 2: NetworkPolicy Applied
-
-**Test:** Run `kubectl get networkpolicy`
-
-**Expected:** Rows for `default-deny-ingress`, `allow-nginx-to-flask`, `allow-flask-to-postgres`, and `allow-ingress-to-nginx`
+**Expected:** one pod, `1/1 Running`
 
 **Actual Result:**
 ```
@@ -39,32 +22,15 @@ TODO: Paste the actual output
 
 **Status:** TODO: [ ] Pass [ ] Fail
 
-**Notes:** All four are required -- `allow-ingress-to-nginx` is easy to miss since it's not part of the original three-policy set, but without it `default-deny-ingress` blocks all external traffic into nginx too.
+**Notes:** If it is not running, check `kubectl describe pod -n backup -l app=minio`. A missing `minio-credentials` Secret (Step 3) is the most common cause.
 
 ---
 
-### Check 3: Application Works After NetworkPolicy
+### Check 2: At Least One restic Snapshot Exists
 
-**Test:** Run `curl -s http://localhost:8081/incidents`
+**Test:** Run `source week-8/restic-env.sh && restic snapshots`
 
-**Expected:** Valid JSON response
-
-**Actual Result:**
-```
-TODO: Paste the actual response
-```
-
-**Status:** TODO: [ ] Pass [ ] Fail
-
-**Notes:** If this fails while Check 2 passes, check whether `allow-flask-to-postgres` actually selects `app: db` (the real label on the db Deployment) -- a mismatched label here silently blocks flask from reaching the database.
-
----
-
-### Check 4: SecurityContext Is Set
-
-**Test:** Run `kubectl get deployment flask -o jsonpath='{.spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation}'`
-
-**Expected:** `false`
+**Expected:** At least one snapshot row
 
 **Actual Result:**
 ```
@@ -73,30 +39,31 @@ TODO: Paste the actual output
 
 **Status:** TODO: [ ] Pass [ ] Fail
 
-**Notes:** Also confirm `readOnlyRootFilesystem`, `runAsNonRoot`, and `capabilities.drop: [ALL]` are set -- this check only verifies one of the four SecurityContext fields Step 12 adds.
+**Notes:** `restic-env.sh` reads the passwords from `week-8/.env.backup` itself, so that file must exist on the VM. The MinIO port-forward from Step 5 must also be running, or restic reports a connection error.
 
 ---
 
-### Check 5: OpenTofu State Matches the Cluster (No Drift)
+### Check 3: Recovery Drill Succeeded
 
-**Test:** Run `cd infrastructure && tofu plan`
+**Test:** Compare the row count recorded before the drill (Step 15) to the row count after recovery (Step 22)
 
-**Expected:** `No changes. Your infrastructure matches the configuration.`
+**Expected:** Post-restore count matches pre-drill count
 
 **Actual Result:**
 ```
-TODO: Paste the actual output
+TODO: Pre-drill count: ___
+TODO: Post-restore count: ___
 ```
 
 **Status:** TODO: [ ] Pass [ ] Fail
 
-**Notes:** Drift here almost always means a change was applied with `kubectl apply`/`kubectl edit` instead of `tofu apply`.
+**Notes:** If the count came back as `0` instead of matching, the restore in Step 21 most likely replayed an empty dump. Check `restic dump --tag pre-drill latest /statustracker.sql | wc -l` -- a count of `0` means the pre-drill backup itself was empty. Flask's own `CREATE TABLE IF NOT EXISTS` recreates an empty table when it starts, which can look like a successful recovery but isn't.
 
 ---
 
-### Check 6: Check Script Passes
+### Check 4: Check Script Passes
 
-**Test:** Run `chmod +x ./scripts/check-week7.sh` then `./scripts/check-week7.sh`
+**Test:** Run `chmod +x ./scripts/check-week8.sh` then `./scripts/check-week8.sh`
 
 **Expected:** All checks pass with exit code 0
 
@@ -107,7 +74,7 @@ TODO: Paste the full output of the check script
 
 **Status:** TODO: [ ] Pass [ ] Fail
 
-**Notes:** If any checks failed, what did the script report?
+**Notes:** This script cannot verify the recovery drill itself (Check 3) -- that's confirmed manually and recorded in the Google Doc and runbook.
 
 ---
 
@@ -115,32 +82,37 @@ TODO: Paste the full output of the check script
 
 Review the criteria below for each part of this week's deliverables. For each criterion, record whether it was met:
 
-### Part 1: Kubernetes RBAC
+### Part 1: Provision MinIO
 
-TODO: [ ] `manifests/flask-serviceaccount.yaml` created with `automountServiceAccountToken: false`
-TODO: [ ] `manifests/flask-role.yaml` created with least-privilege rules (configmaps get/list only)
-TODO: [ ] `manifests/flask-rolebinding.yaml` created, binding the Role to the `flask-app` ServiceAccount
-TODO: [ ] `infrastructure/flask.tf` updated with `service_account_name = "flask-app"`, applied via `tofu apply` (not `kubectl apply -f manifests/flask-deployment.yaml`, which OpenTofu no longer manages)
+TODO: [ ] `week-8/.env.backup` created with `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD`, and `RESTIC_PASSWORD`, added to `.gitignore`
+TODO: [ ] `minio-credentials` Secret created in the `backup` namespace
+TODO: [ ] `week-8/minio.yaml` applied; MinIO pod `1/1 Running` in the `backup` namespace
+TODO: [ ] MinIO port-forward running on the team's assigned MinIO port
+TODO: [ ] `backups` bucket created (via a single combined `docker run` session -- two separate `docker run --rm` calls will not share an `mc` alias between them)
 
-### Part 2: NetworkPolicy
+### Part 2: Configure restic Backups
 
-TODO: [ ] `manifests/default-deny.yaml` created and applied; Step 8's debug-pod test actually timed out (not "connection refused" or immediate success)
-TODO: [ ] `manifests/allow-nginx-to-flask.yaml` created (`app: flask` selector, allows from `app: nginx` on port 5000)
-TODO: [ ] `manifests/allow-flask-to-postgres.yaml` created (`app: db` selector -- not `app: postgres`, which matches no real pods)
-TODO: [ ] `manifests/allow-ingress-to-nginx.yaml` created (`app: nginx` selector, allows port 80 from any source)
-TODO: [ ] All four policies applied; `curl http://localhost:8081/incidents` returns valid JSON end to end
+TODO: [ ] `week-8/restic-env.sh` updated with the team's MinIO port, and contains no literal passwords
+TODO: [ ] restic repository initialized (`restic init`)
+TODO: [ ] At least one test backup taken by piping `kubectl exec deploy/db -- pg_dump ...` into `restic backup --stdin`, and `restic dump latest /statustracker.sql | wc -l` shows a non-zero line count
+TODO: [ ] Retention policy applied (`restic forget --prune --keep-daily 7 --keep-weekly 4 --keep-monthly 3`)
 
-### Part 3: SecurityContext
+### Part 3: Automated Backups via GitHub Actions
 
-TODO: [ ] `infrastructure/flask.tf` container block gained `security_context` (allow_privilege_escalation=false, read_only_root_filesystem=true, run_as_non_root=true, run_as_user=1000, capabilities.drop=[ALL])
-TODO: [ ] Applied via `tofu apply`; flask pods restarted and came back healthy
-TODO: [ ] If pods failed on a read-only-filesystem write, the fix (e.g. an `emptyDir` mount) is documented
+TODO: [ ] `.github/workflows/backup.yml` committed with a daily cron trigger and `workflow_dispatch`
+TODO: [ ] `RESTIC_REPOSITORY`, `RESTIC_PASSWORD`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` stored as GitHub Actions secrets
+TODO: [ ] Workflow manually triggered; screenshot captured of the run **failing** at `restic snapshots` with a connection-refused error -- this is the expected, correct result. `RESTIC_REPOSITORY` points at `http://localhost:<your MinIO port>`, which only resolves to your team's own machine locally; a GitHub-hosted runner has no path to reach it. A green checkmark here would actually indicate something is misconfigured, not the reverse.
 
-### Part 4: Image Vulnerability Scanning in CI
+### Part 4: Recovery Drill
 
-TODO: [ ] `.github/workflows/ci.yml` updated with a `security-scan` job running `aquasecurity/trivy-action`
-TODO: [ ] Job authenticates to `ghcr.io` before scanning and lowercases the image reference (both required -- the image is a private package, and `${{ github.repository }}` includes the org name uncased)
-TODO: [ ] Workflow run observed in the Actions tab; Trivy's log output captured regardless of pass/fail -- `exit-code: '1'` means a red X from real CRITICAL findings (e.g. unpatched base-image OS packages) is an expected, valid outcome, not a bug to chase
+TODO: [ ] Application healthy in the k3d cluster, MinIO port-forward running, and Flask replica count recorded before starting the drill
+TODO: [ ] Pre-drill row count recorded (Step 16)
+TODO: [ ] Fresh pre-drill backup taken with the `pre-drill` tag (Step 17)
+TODO: [ ] `incidents` table dropped; `curl http://localhost:<your Kubernetes port>/incidents` confirmed an error response (Steps 18-19)
+TODO: [ ] Flask scaled to 0 replicas before restoring (Step 20); `db` stays running, since a SQL restore goes through Postgres itself
+TODO: [ ] Pre-drill dump replayed into the database with `restic dump ... | kubectl exec -i deploy/db -- psql ...` (Step 21)
+TODO: [ ] Flask scaled back to its recorded replica count; post-restore row count matches pre-drill count (Steps 22-23)
+TODO: [ ] RTO measured and recorded, compared against the 15-minute target (Step 24)
 
 ---
 
@@ -148,42 +120,27 @@ TODO: [ ] Workflow run observed in the Actions tab; Trivy's log output captured 
 
 ### Required Files
 
-TODO: [ ] `manifests/flask-serviceaccount.yaml`, `flask-role.yaml`, `flask-rolebinding.yaml` committed
-TODO: [ ] `manifests/default-deny.yaml`, `allow-nginx-to-flask.yaml`, `allow-flask-to-postgres.yaml`, `allow-ingress-to-nginx.yaml` committed
-TODO: [ ] `infrastructure/flask.tf` updated with `service_account_name` and `security_context`
-TODO: [ ] `.github/workflows/ci.yml` updated with the `security-scan` job
-TODO: [ ] `scripts/check-week7.sh` present and runs clean
+TODO: [ ] `week-8/minio.yaml` committed
+TODO: [ ] `week-8/restic-env.sh` committed (MinIO port set, no passwords in it)
+TODO: [ ] `.github/workflows/backup.yml` committed
+TODO: [ ] `week-8/runbook.md` committed using the required format (Symptom, Root Cause, Fix, Measured Before/After)
+TODO: [ ] `scripts/check-week8.sh` present and runs clean
 
 ### GitHub Repository
 
-TODO: [ ] All changes pushed to the main branch
-TODO: [ ] `tofu plan` shows no drift at time of push
+TODO: [ ] All changes merged into `main` through a pull request
+TODO: [ ] No real MinIO/restic credentials appear anywhere in git history
 
 ### Google Doc
 
-TODO: [ ] Screenshot of the Step 8 connection timeout is attached
-TODO: [ ] Screenshot of the application responding successfully after all NetworkPolicies applied is attached
-TODO: [ ] Trivy scan log/result from GitHub Actions is attached (pass or fail)
-TODO: [ ] Screenshot of `./scripts/check-week7.sh` passing is attached
-TODO: [ ] Discussion answers recorded for Parts 1-4 (RBAC attack surface, NetworkPolicy enforcement verification and remaining attack paths, read-only-filesystem tradeoffs, scan-stage tradeoffs)
-
----
-
-## Rework Required
-
-If any validation checks or acceptance criteria failed, document the rework needed:
-
-**Issues Found:**
-```
-TODO: List any failures here
-```
-
-**Rework Plan:**
-```
-TODO: For each failure, describe the steps to fix it and who will do the work
-```
-
-**Re-validation Date:** TODO: When will rework be complete?
+TODO: [ ] Screenshot of `restic snapshots` showing at least one snapshot is attached
+TODO: [ ] Screenshot of the application error after `DROP TABLE` is attached
+TODO: [ ] Screenshot of the application returning the correct row count after restore is attached
+TODO: [ ] Screenshot of the backup workflow failing at `restic snapshots` (connection refused) is attached, with the reachability discussion answered
+TODO: [ ] Screenshot of `./scripts/check-week8.sh` passing is attached
+TODO: [ ] Recovery drill results recorded: start time, end time, measured RTO, row count before and after
+TODO: [ ] Discussion answers recorded for Parts 1-4 (backup target failure domain, retention policy risk, RPO, RTO vs. target)
+TODO: [ ] Week 8 storage check recorded, compared to Week 7 baseline
 
 ---
 

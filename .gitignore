@@ -33,3 +33,4 @@ ENV/
 .env.local
 .env*.local
 week-2/.env
+week-8/.env.backup
