@@ -26,7 +26,11 @@ spec:
         app: db
     spec:
       containers:
-      - image: postgres:15-alpine
+      - envFrom:
+          - secretRef:
+              name: db-credentials
+        args: ["-c", "shared_preload_libraries=pg_stat_statements"]
+        image: postgres:15-alpine
         livenessProbe:
           exec:
             command:
